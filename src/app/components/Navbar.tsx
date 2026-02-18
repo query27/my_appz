@@ -22,7 +22,7 @@ const Navbar = async () => {
 
       <ul className='flex gap-10 text-lg'>
         <Link href='/Features' className='text-black hover:text-blue-500 transition-colors'>
-          Features
+          How It Works
         </Link>
         <Link href='/Docs' className='text-black hover:text-blue-500 transition-colors'>
           Docs
