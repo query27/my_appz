@@ -9,7 +9,7 @@ const Navbar = async () => {
   const isLoggedIn = !!user
 
   return (
-    <nav className='fixed top-0 w-full flex items-center justify-around py-5 border-b border-black bg-white z-50'>
+    <nav className='fixed top-0 w-full flex items-center justify-around py-5 border-b border-white/10 bg-[#0a1a14] z-50'>
 
       <Link href="/" className='transition duration-300 hover:scale-110'>
         <Image
@@ -21,13 +21,13 @@ const Navbar = async () => {
       </Link>
 
       <ul className='flex gap-10 text-lg'>
-        <Link href='/Features' className='text-black hover:text-blue-500 transition-colors'>
+        <Link href='/Features' className='text-gray-300 hover:text-emerald-400 transition-colors'>
           How It Works
         </Link>
-        <Link href='/Docs' className='text-black hover:text-blue-500 transition-colors'>
+        <Link href='/Docs' className='text-gray-300 hover:text-emerald-400 transition-colors'>
           Docs
         </Link>
-        <Link href='/Pricing' className='text-black hover:text-blue-500 transition-colors'>
+        <Link href='/Pricing' className='text-gray-300 hover:text-emerald-400 transition-colors'>
           Pricing
         </Link>
       </ul>
