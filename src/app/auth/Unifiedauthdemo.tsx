@@ -3,6 +3,7 @@
 import { getSupabaseBrowserClient } from "@/app/lib/supabase/browser-client";
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AuthDemoPage } from "../components/AuthDemoPage";
 
 type UnifiedAuthDemoProps = {
@@ -19,6 +20,7 @@ export default function UnifiedAuthDemo({ user }: UnifiedAuthDemoProps) {
   const [loading, setLoading] = useState(false);
   const supabase = getSupabaseBrowserClient();
   const [currentUser, setCurrentUser] = useState<User | null>(user);
+  const router = useRouter();
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(
@@ -33,6 +35,7 @@ export default function UnifiedAuthDemo({ user }: UnifiedAuthDemoProps) {
     await supabase.auth.signOut();
     setCurrentUser(null);
     setStatus("Signed out successfully");
+    router.refresh();
   }
 
   async function handleEmailSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -49,12 +52,17 @@ export default function UnifiedAuthDemo({ user }: UnifiedAuthDemoProps) {
         },
       });
       setStatus(error ? error.message : "Check your inbox to confirm the new account.");
+      setLoading(false);
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      setStatus(error ? error.message : "Signed in successfully");
+      if (error) {
+        setStatus(error.message);
+        setLoading(false);
+      } else {
+        router.push("/");
+        router.refresh();
+      }
     }
-
-    setLoading(false);
   }
 
   async function handleGoogleLogin() {
@@ -128,7 +136,7 @@ export default function UnifiedAuthDemo({ user }: UnifiedAuthDemoProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="user@email.com"
+                placeholder="you@email.com"
                 className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0b1220] px-3 py-2.5 text-base text-white placeholder-slate-500 shadow-inner shadow-black/30 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
               />
             </label>
@@ -217,7 +225,7 @@ export default function UnifiedAuthDemo({ user }: UnifiedAuthDemoProps) {
                 <dt className="text-slate-400">Last sign in</dt>
                 <dd>
                   {currentUser.last_sign_in_at
-                    ? new Date(currentUser.last_sign_in_at).toLocaleString()
+                    ? new Date(currentUser.last_sign_in_at).toLocaleString("en-US")
                     : "—"}
                 </dd>
               </div>
