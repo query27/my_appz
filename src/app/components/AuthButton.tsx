@@ -23,7 +23,7 @@ export default function AuthButton({ isLoggedIn }: AuthButtonProps) {
     return (
       <button
         onClick={handleSignOut}
-        className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
+        className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition text-sm font-semibold"
       >
         Sign Out
       </button>
@@ -33,11 +33,27 @@ export default function AuthButton({ isLoggedIn }: AuthButtonProps) {
   if (pathname === "/auth") return null;
 
   return (
-    <Link
-      href="/auth"
-      className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition"
-    >
-      Sign In
-    </Link>
+    <div className="flex items-center gap-3">
+
+      {/* Sign In */}
+      <Link
+        href="/auth"
+        className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:border-emerald-400 hover:text-emerald-400 transition text-sm font-semibold"
+      >
+        Sign In
+      </Link>
+
+      {/* Divider */}
+      <span className="text-gray-600 text-lg select-none">|</span>
+
+      {/* Get Started Free */}
+      <Link
+        href="/auth"
+        className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 transition text-white text-sm font-semibold whitespace-nowrap"
+      >
+        Get Started Free
+      </Link>
+
+    </div>
   );
 }
