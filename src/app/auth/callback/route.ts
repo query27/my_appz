@@ -7,9 +7,20 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}/`);  // ← redirect home
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      // Check if user has already completed onboarding
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_complete")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profile?.onboarding_complete) {
+        return NextResponse.redirect(`${origin}/dashboard`);
+      } else {
+        return NextResponse.redirect(`${origin}/onboarding/business`);
+      }
     }
   }
 
