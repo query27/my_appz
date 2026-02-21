@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/app/lib/supabase/browser-client";
 import OnboardingProgress from "@/app/components/OnboardingProgress";
 
-export default function InvoicesPage() {
+export default function InvoicesStep() {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
 
@@ -13,22 +13,19 @@ export default function InvoicesPage() {
   const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [skipped, setSkipped] = useState(false);
 
   async function handleNext() {
     setLoading(true);
-    if (clientName && amount && dueDate) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("invoices").insert({
-          user_id: user.id,
-          client_name: clientName,
-          amount: parseFloat(amount),
-          due_date: dueDate,
-          status: "pending",
-        });
-        await supabase.from("profiles").upsert({ id: user.id, onboarding_step: 3 });
-      }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && clientName && amount && dueDate) {
+      await supabase.from("invoices").insert({
+        user_id: user.id,
+        client_name: clientName,
+        amount: parseFloat(amount),
+        due_date: dueDate,
+        status: "pending",
+      });
+      await supabase.from("profiles").upsert({ id: user.id, onboarding_step: 3 });
     }
     router.push("/onboarding/reminders");
   }
@@ -43,7 +40,6 @@ export default function InvoicesPage() {
     <div className="min-h-screen bg-[#0a1a14] flex items-center justify-center px-4">
       <div className="w-full max-w-lg">
 
-        {/* Logo */}
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 bg-emerald-700 rounded-lg flex items-center justify-center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -62,7 +58,6 @@ export default function InvoicesPage() {
           </p>
 
           <div className="flex flex-col gap-5">
-
             <div>
               <label className="text-gray-300 text-sm font-medium block mb-2">Client Name</label>
               <input
@@ -79,7 +74,7 @@ export default function InvoicesPage() {
                 <label className="text-gray-300 text-sm font-medium block mb-2">Amount ($)</label>
                 <input
                   type="number"
-                  placeholder="2,150.00"
+                  placeholder="2150"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full bg-[#111c17] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition text-sm"
@@ -95,10 +90,8 @@ export default function InvoicesPage() {
                 />
               </div>
             </div>
-
           </div>
 
-          {/* Preview card */}
           {clientName && amount && (
             <div className="mt-6 bg-[#0a1a14] border border-emerald-700/40 rounded-xl p-4 flex items-center justify-between">
               <div>
@@ -124,7 +117,6 @@ export default function InvoicesPage() {
             Skip for now — I&apos;ll add invoices later
           </button>
         </div>
-
       </div>
     </div>
   );

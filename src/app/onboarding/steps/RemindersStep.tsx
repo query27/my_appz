@@ -25,17 +25,17 @@ const styles = [
     label: "Final Notice",
     emoji: "⚠️",
     description: "Serious tone for invoices that are significantly overdue.",
-    example: "FINAL NOTICE: Invoice #123 requires immediate attention to avoid further action.",
+    example: "FINAL NOTICE: Invoice #123 requires immediate attention.",
   },
 ];
 
 const patterns = [
-  { id: "3days",  label: "Every 3 days",  description: "Frequent — best for invoices close to due date" },
-  { id: "7days",  label: "Every 7 days",  description: "Weekly — the most common choice" },
+  { id: "3days",  label: "Every 3 days",  description: "Best for invoices close to due date" },
+  { id: "7days",  label: "Every 7 days",  description: "Weekly — most common choice" },
   { id: "14days", label: "Every 2 weeks", description: "Relaxed — for longer payment terms" },
 ];
 
-export default function RemindersPage() {
+export default function RemindersStep() {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
 
@@ -61,7 +61,6 @@ export default function RemindersPage() {
     <div className="min-h-screen bg-[#0a1a14] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-lg">
 
-        {/* Logo */}
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 bg-emerald-700 rounded-lg flex items-center justify-center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -75,11 +74,8 @@ export default function RemindersPage() {
 
         <div className="bg-[#0f1f18] border border-gray-700/60 rounded-2xl p-8">
           <h1 className="text-white font-extrabold text-2xl mb-1">Set your reminder style</h1>
-          <p className="text-gray-400 text-sm mb-8">
-            How should GentleChase sound when chasing your invoices?
-          </p>
+          <p className="text-gray-400 text-sm mb-8">How should GentleChase sound when chasing your invoices?</p>
 
-          {/* Style selector */}
           <div className="flex flex-col gap-3 mb-8">
             {styles.map((s) => (
               <button
@@ -108,7 +104,6 @@ export default function RemindersPage() {
             ))}
           </div>
 
-          {/* Pattern selector */}
           <p className="text-gray-300 text-sm font-semibold mb-3">How often should we send reminders?</p>
           <div className="flex gap-3 flex-wrap mb-8">
             {patterns.map((p) => (
@@ -135,11 +130,8 @@ export default function RemindersPage() {
             {loading ? "Saving…" : "Continue →"}
           </button>
 
-          <p className="text-gray-600 text-xs text-center mt-4">
-            You can change this anytime from settings
-          </p>
+          <p className="text-gray-600 text-xs text-center mt-4">You can change this anytime from settings</p>
         </div>
-
       </div>
     </div>
   );
