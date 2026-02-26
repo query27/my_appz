@@ -4,6 +4,7 @@ import { getSupabaseBrowserClient } from "@/app/lib/supabase/browser-client";
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 type UnifiedAuthDemoProps = {
   user: User | null;
@@ -12,7 +13,9 @@ type UnifiedAuthDemoProps = {
 type Mode = "signup" | "signin";
 
 export default function UnifiedAuthDemo({ user }: UnifiedAuthDemoProps) {
-  const [mode, setMode] = useState<Mode>("signup");
+  const searchParams = useSearchParams();
+  const initialMode = searchParams.get("mode") === "signin" ? "signin" : "signup"; 
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");

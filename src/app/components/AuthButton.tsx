@@ -37,7 +37,7 @@ export default function AuthButton({ isLoggedIn }: AuthButtonProps) {
 
       {/* Sign In */}
       <Link
-        href="/auth"
+        href="/auth?mode=signin"
         className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:border-emerald-400 hover:text-emerald-400 transition text-sm font-semibold"
       >
         Sign In
