@@ -1,12 +1,13 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import {
-  FileText, Plus, Search, MoreHorizontal, CheckCircle2,
+  FileText, Plus, Search, MoreHorizontal, CheckCircle2, Upload,
   Send, Trash2, X, AlertCircle, Loader2, Calendar,
   DollarSign, User, Mail, Phone, Building2, Hash,
   Clock, TrendingUp, AlertTriangle, ChevronDown,
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/app/lib/supabase/browser-client";
+import UploadInvoicesModal from "./Uploadinvoicesmodal";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Invoice {
@@ -398,6 +399,7 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
   const [reminderTarget, setReminderTarget] = useState<Invoice | null>(null);
   const [menuOpen, setMenuOpen]         = useState<string | null>(null);
+  const [showUpload, setShowUpload]     = useState(false);
   const menuRef                         = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -487,12 +489,20 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
               <h1 style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>Invoices</h1>
               <p style={{ fontSize: 13, color: C.gray500, marginTop: 4 }}>{total} total invoices</p>
             </div>
-            <button
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setShowUpload(true)}
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 18px", fontSize: 13, fontWeight: 600, color: "#9ca3af", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <Upload size={15} /> Upload
+              </button>
+              <button
               onClick={() => { setEditInvoice(null); setShowModal(true); }}
               style={{ background: "linear-gradient(135deg,#34d399,#10b981)", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 20px rgba(52,211,153,0.25)" }}
             >
               <Plus size={15} /> New Invoice
             </button>
+            </div>
           </div>
 
           {/* ── Stat Cards ── */}
@@ -673,6 +683,17 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
       )}
       {deleteTarget && <DeleteConfirm invoice={deleteTarget} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />}
       {reminderTarget && <ReminderModal invoice={reminderTarget} onClose={() => setReminderTarget(null)} />}
+      {showUpload && (
+        <UploadInvoicesModal
+          onClose={() => setShowUpload(false)}
+          onImported={(newInvoices) => {
+            setInvoices((p) => [...newInvoices, ...p]);
+            setShowUpload(false);
+          }}
+          userId={userId}
+          existingInvoiceNumbers={invoices.map((i) => i.invoice_number || "").filter(Boolean)}
+        />
+      )}
     </>
   );
 }
