@@ -47,21 +47,28 @@ const C = {
 
 // ── Column aliases for auto-detection ─────────────────────────────────────────
 const COLUMN_MAP: Record<string, string> = {
-  // client_name
+  // client_name — QuickBooks, Xero, FreshBooks, Wave aliases
   "client": "client_name", "client name": "client_name", "name": "client_name",
   "customer": "client_name", "customer name": "client_name", "bill to": "client_name",
-  // amount
+  // Xero specific
+  "contact name": "client_name", "contact": "client_name", "to": "client_name",
+  "recipient": "client_name", "payee": "client_name", "billed to": "client_name",
+  // amount — QuickBooks, Xero, FreshBooks, Wave
   "amount": "amount", "total": "amount", "price": "amount", "value": "amount",
   "invoice amount": "amount", "cost": "amount", "fee": "amount", "charge": "amount",
-  // due_date
+  "unit amount": "amount", "subtotal": "amount", "total amount": "amount",
+  "amount due": "amount", "balance due": "amount", "grand total": "amount",
+  // due_date — QuickBooks, Xero
   "due date": "due_date", "due": "due_date", "date": "due_date",
   "payment due": "due_date", "due by": "due_date", "expiry": "due_date",
-  // invoice_number
+  "invoice date": "due_date", "planned date": "due_date", "expected date": "due_date",
+  // invoice_number — QuickBooks, Xero
   "invoice number": "invoice_number", "invoice #": "invoice_number",
   "inv #": "invoice_number", "inv number": "invoice_number", "number": "invoice_number",
   "invoice no": "invoice_number", "reference": "invoice_number",
-  // status
-  "status": "status", "payment status": "status", "state": "status",
+  "invoice ref": "invoice_number", "ref": "invoice_number", "invoice id": "invoice_number",
+  // status — QuickBooks, Xero
+  "status": "status", "payment status": "status", "state": "status", "invoice status": "status",
   // description
   "description": "description", "desc": "description", "service": "description",
   "details": "description", "notes": "notes", "note": "notes", "memo": "notes",

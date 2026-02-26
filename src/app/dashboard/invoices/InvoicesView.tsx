@@ -5,6 +5,7 @@ import {
   Send, Trash2, X, AlertCircle, Loader2, Calendar,
   DollarSign, User, Mail, Phone, Building2, Hash,
   Clock, TrendingUp, AlertTriangle, ChevronDown,
+  Square, CheckSquare, MinusSquare,
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/app/lib/supabase/browser-client";
 import UploadInvoicesModal from "./Uploadinvoicesmodal";
@@ -400,6 +401,8 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
   const [reminderTarget, setReminderTarget] = useState<Invoice | null>(null);
   const [menuOpen, setMenuOpen]         = useState<string | null>(null);
   const [showUpload, setShowUpload]     = useState(false);
+  const [selected, setSelected]         = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading]   = useState(false);
   const menuRef                         = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -459,6 +462,48 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
 
   const isOverdue = (inv: Invoice) =>
     inv.status === "pending" && new Date(inv.due_date) < new Date();
+
+  // ── Bulk selection ──
+  const allFilteredIds  = filtered.map((i) => i.id);
+  const allSelected     = allFilteredIds.length > 0 && allFilteredIds.every((id) => selected.has(id));
+  const someSelected    = allFilteredIds.some((id) => selected.has(id)) && !allSelected;
+  const selectedCount   = allFilteredIds.filter((id) => selected.has(id)).length;
+
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected((prev) => { const next = new Set(prev); allFilteredIds.forEach((id) => next.delete(id)); return next; });
+    } else {
+      setSelected((prev) => { const next = new Set(prev); allFilteredIds.forEach((id) => next.add(id)); return next; });
+    }
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
+  const bulkUpdateStatus = async (status: "paid" | "pending" | "overdue") => {
+    const ids = [...selected];
+    setBulkLoading(true);
+    const { error } = await supabase.from("invoices").update({ status }).in("id", ids);
+    if (!error) setInvoices((p) => p.map((inv) => selected.has(inv.id) ? { ...inv, status } : inv));
+    clearSelection();
+    setBulkLoading(false);
+  };
+
+  const bulkDelete = async () => {
+    const ids = [...selected];
+    setBulkLoading(true);
+    const { error } = await supabase.from("invoices").delete().in("id", ids);
+    if (!error) setInvoices((p) => p.filter((inv) => !selected.has(inv.id)));
+    clearSelection();
+    setBulkLoading(false);
+  };
 
   return (
     <>
@@ -533,7 +578,7 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {(["all", "paid", "pending", "overdue"] as const).map((f) => (
-                <button key={f} className={`inv-filter ${filter === f ? "inv-filter-active" : ""}`} onClick={() => setFilter(f)}>
+                <button key={f} className={`inv-filter ${filter === f ? "inv-filter-active" : ""}`} onClick={() => { setFilter(f); clearSelection(); }}>
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                   {f !== "all" && (
                     <span style={{ marginLeft: 5, fontSize: 10, opacity: 0.7 }}>
@@ -545,10 +590,41 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
             </div>
           </div>
 
+          {/* ── Bulk Action Bar ── */}
+          {selectedCount > 0 && (
+            <div style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: C.emerald }}>{selectedCount} selected</span>
+              <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.1)" }} />
+              {/* Mark as status buttons */}
+              {(["paid", "pending", "overdue"] as const).map((s) => {
+                const cfg = statusCfg[s];
+                return (
+                  <button key={s} onClick={() => bulkUpdateStatus(s)} disabled={bulkLoading}
+                    style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: cfg.color, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontFamily: "Inter,sans-serif", opacity: bulkLoading ? 0.6 : 1 }}>
+                    {cfg.icon} Mark {cfg.label}
+                  </button>
+                );
+              })}
+              <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.1)" }} />
+              <button onClick={bulkDelete} disabled={bulkLoading}
+                style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: C.red, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontFamily: "Inter,sans-serif", opacity: bulkLoading ? 0.6 : 1 }}>
+                {bulkLoading ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={12} />}
+                Delete
+              </button>
+              <button onClick={clearSelection} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.gray500, fontSize: 12, fontFamily: "Inter,sans-serif", display: "flex", alignItems: "center", gap: 4 }}>
+                <X size={12} /> Deselect all
+              </button>
+            </div>
+          )}
+
           {/* ── Table ── */}
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}>
             {/* Table header */}
-            <div style={{ display: "grid", gridTemplateColumns: "120px 1.5fr 1fr 1fr 90px 90px 48px", padding: "12px 20px", borderBottom: `1px solid ${C.border}`, gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "40px 120px 1.5fr 1fr 1fr 90px 90px 48px", padding: "12px 20px", borderBottom: `1px solid ${C.border}`, gap: 12, alignItems: "center" }}>
+              {/* Select all checkbox */}
+              <button onClick={toggleAll} style={{ background: "none", border: "none", cursor: "pointer", color: allSelected ? C.emerald : someSelected ? C.emerald : C.gray400, display: "flex", padding: 0 }}>
+                {allSelected ? <CheckSquare size={16} /> : someSelected ? <MinusSquare size={16} /> : <Square size={16} />}
+              </button>
               {["Invoice #", "Client", "Amount", "Due Date", "Status", "Actions", ""].map((h) => (
                 <span key={h} style={{ fontSize: 11, color: "#4b5563", fontWeight: 500 }}>{h}</span>
               ))}
@@ -577,7 +653,15 @@ export default function InvoicesView({ initialInvoices, clients, userId }: Props
                 const cfg = statusCfg[inv.status] || statusCfg.pending;
                 const overdue = isOverdue(inv);
                 return (
-                  <div key={inv.id} className="inv-row" style={{ display: "grid", gridTemplateColumns: "120px 1.5fr 1fr 1fr 90px 90px 48px", padding: "14px 20px", alignItems: "center", gap: 12 }}>
+                  <div key={inv.id} className="inv-row" style={{ display: "grid", gridTemplateColumns: "40px 120px 1.5fr 1fr 1fr 90px 90px 48px", padding: "14px 20px", alignItems: "center", gap: 12, background: selected.has(inv.id) ? "rgba(52,211,153,0.06)" : undefined, transition: "background 0.15s" }}>
+
+                    {/* Checkbox */}
+                    <button onClick={(e) => { e.stopPropagation(); toggleOne(inv.id); }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: selected.has(inv.id) ? C.emerald : C.gray400, display: "flex", padding: 0, transition: "color 0.15s", flexShrink: 0 }}
+                      onMouseEnter={(e) => { if (!selected.has(inv.id)) e.currentTarget.style.color = "#fff"; }}
+                      onMouseLeave={(e) => { if (!selected.has(inv.id)) e.currentTarget.style.color = C.gray400; }}>
+                      {selected.has(inv.id) ? <CheckSquare size={16} color={C.emerald} /> : <Square size={16} />}
+                    </button>
 
                     {/* Invoice # */}
                     <div>
